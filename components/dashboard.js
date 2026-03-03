@@ -1,6 +1,4 @@
-import { supabase } from '../supabase-client.js';
-
-export const Dashboard = {
+const Dashboard = {
     charts: {},
     
     render() {
@@ -119,7 +117,7 @@ export const Dashboard = {
     },
 
     async loadFilters() {
-        const { data: members } = await supabase
+        const { data: members } = await window.supabaseClient
             .from('family_members')
             .select('user_id, profiles(full_name)')
             .eq('family_id', this.app.currentFamily.id);
@@ -132,7 +130,7 @@ export const Dashboard = {
             memberSelect.appendChild(option);
         });
 
-        const { data: categories } = await supabase
+        const { data: categories } = await window.supabaseClient
             .from('categories')
             .select('*')
             .eq('family_id', this.app.currentFamily.id);
@@ -182,7 +180,7 @@ export const Dashboard = {
 
     async loadData() {
         const { start, end } = this.getDateRange();
-        let query = supabase
+        let query = window.supabaseClient
             .from('transactions')
             .select('*, categories(name)')
             .eq('family_id', this.app.currentFamily.id)
@@ -355,7 +353,7 @@ export const Dashboard = {
         const ctx = document.getElementById('chart-debts');
         if (!ctx) return;
 
-        const { data: debts } = await supabase
+        const { data: debts } = await window.supabaseClient
             .from('debts')
             .select('*, debt_payments(amount)')
             .eq('family_id', this.app.currentFamily.id)
@@ -408,7 +406,7 @@ export const Dashboard = {
         const channels = ['transactions', 'debts', 'savings_goals'];
         
         channels.forEach(table => {
-            supabase.channel(`${table}-changes`)
+            window.supabaseClient.channel(`${table}-changes`)
                 .on('postgres_changes', 
                     { event: '*', schema: 'public', table, filter: `family_id=eq.${this.app.currentFamily.id}` },
                     () => this.loadData()
