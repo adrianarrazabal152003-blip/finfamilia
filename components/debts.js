@@ -1,6 +1,4 @@
-import { supabase } from '../supabase-client.js';
-
-export const Debts = {
+const Debts = {
     render() {
         return `
             <div class="page-header">
@@ -75,7 +73,7 @@ export const Debts = {
     },
 
     async loadDebts() {
-        const { data: debts } = await supabase
+        const { data: debts } = await window.supabaseClient
             .from('debts')
             .select('*, debt_payments(amount)')
             .eq('family_id', this.app.currentFamily.id)
@@ -139,7 +137,7 @@ export const Debts = {
         document.getElementById('debt-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const { error } = await supabase.from('debts').insert([{
+            const { error } = await window.supabaseClient.from('debts').insert([{
                 family_id: this.app.currentFamily.id,
                 description: document.getElementById('debt-description').value,
                 total_amount: document.getElementById('debt-total').value,
@@ -162,8 +160,8 @@ export const Debts = {
     async confirmDelete() {
         if (!this.deleteId) return;
         
-        await supabase.from('debt_payments').delete().eq('debt_id', this.deleteId);
-        await supabase.from('debts').delete().eq('id', this.deleteId);
+        await window.supabaseClient.from('debt_payments').delete().eq('debt_id', this.deleteId);
+        await window.supabaseClient.from('debts').delete().eq('id', this.deleteId);
         
         this.closeDeleteModal();
         this.loadDebts();
