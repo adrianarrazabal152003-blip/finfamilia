@@ -1,6 +1,4 @@
-import { supabase } from '../supabase-client.js';
-
-export const Savings = {
+const Savings = {
     render() {
         return `
             <div class="page-header">
@@ -75,7 +73,7 @@ export const Savings = {
     },
 
     async loadSavings() {
-        const { data: goals } = await supabase
+        const { data: goals } = await window.supabaseClient
             .from('savings_goals')
             .select('*, savings_entries(amount)')
             .eq('family_id', this.app.currentFamily.id)
@@ -128,7 +126,7 @@ export const Savings = {
         document.getElementById('savings-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const { error } = await supabase.from('savings_goals').insert([{
+            const { error } = await window.supabaseClient.from('savings_goals').insert([{
                 family_id: this.app.currentFamily.id,
                 name: document.getElementById('savings-name').value,
                 target_amount: document.getElementById('savings-target').value,
@@ -150,8 +148,8 @@ export const Savings = {
     async confirmDelete() {
         if (!this.deleteId) return;
         
-        await supabase.from('savings_entries').delete().eq('savings_goal_id', this.deleteId);
-        await supabase.from('savings_goals').delete().eq('id', this.deleteId);
+        await window.supabaseClient.from('savings_entries').delete().eq('savings_goal_id', this.deleteId);
+        await window.supabaseClient.from('savings_goals').delete().eq('id', this.deleteId);
         
         this.closeDeleteModal();
         this.loadSavings();
@@ -174,7 +172,7 @@ export const Savings = {
     openDepositModal(goalId) {
         const amount = prompt('Valor do depósito:');
         if (amount && !isNaN(amount)) {
-            supabase.from('savings_entries').insert([{
+            window.supabaseClient.from('savings_entries').insert([{
                 savings_goal_id: goalId,
                 amount: parseFloat(amount),
                 entry_date: new Date().toISOString()
