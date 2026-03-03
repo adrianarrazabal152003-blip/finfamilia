@@ -17,7 +17,7 @@ class FinFamiliaApp {
     }
 
     async init() {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
         
         if (session) {
             this.currentUser = session.user;
@@ -29,7 +29,7 @@ class FinFamiliaApp {
     }
 
     setupAuthListener() {
-        supabase.auth.onAuthStateChange(async (event, session) => {
+        window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN') {
                 this.currentUser = session.user;
                 await this.loadUserFamily();
@@ -43,7 +43,7 @@ class FinFamiliaApp {
     }
 
     async loadUserFamily() {
-        const { data: member } = await supabase
+        const { data: member } = await window.supabaseClient
             .from('family_members')
             .select('family_id, families(*)')
             .eq('user_id', this.currentUser.id)
@@ -136,14 +136,14 @@ class FinFamiliaApp {
             const name = document.getElementById('family-name').value;
             const inviteCode = Math.random().toString(36).substring(2, 11).toUpperCase();
             
-            const { data: family, error } = await supabase
+            const { data: family, error } = await window.supabaseClient
                 .from('families')
                 .insert([{ name, invite_code: inviteCode }])
                 .select()
                 .single();
 
             if (family) {
-                await supabase.from('family_members').insert([{
+                await window.supabaseClient.from('family_members').insert([{
                     family_id: family.id,
                     user_id: this.currentUser.id,
                     role: 'admin'
@@ -158,14 +158,14 @@ class FinFamiliaApp {
             e.preventDefault();
             const code = document.getElementById('invite-code').value.toUpperCase();
             
-            const { data: family } = await supabase
+            const { data: family } = await window.supabaseClient
                 .from('families')
                 .select('*')
                 .eq('invite_code', code)
                 .single();
 
             if (family) {
-                await supabase.from('family_members').insert([{
+                await window.supabaseClient.from('family_members').insert([{
                     family_id: family.id,
                     user_id: this.currentUser.id,
                     role: 'member'
@@ -238,13 +238,8 @@ class FinFamiliaApp {
     }
 
     async logout() {
-        await supabase.auth.signOut();
+        await window.supabaseClient.auth.signOut();
     }
 }
-
-window.app = new FinFamiliaApp();
-    }
-}
-
 
 window.app = new FinFamiliaApp();
