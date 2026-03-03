@@ -1,6 +1,4 @@
-import { supabase } from '../supabase-client.js';
-
-export const Transactions = {
+const Transactions = {
     render() {
         return `
             <div class="page-header">
@@ -83,7 +81,7 @@ export const Transactions = {
     },
 
     async loadTransactions() {
-        const { data: transactions } = await supabase
+        const { data: transactions } = await window.supabaseClient
             .from('transactions')
             .select('*, categories(name), profiles(full_name)')
             .eq('family_id', this.app.currentFamily.id)
@@ -135,7 +133,7 @@ export const Transactions = {
     },
 
     async loadDebtsSelect() {
-        const { data: debts } = await supabase
+        const { data: debts } = await window.supabaseClient
             .from('debts')
             .select('*')
             .eq('family_id', this.app.currentFamily.id)
@@ -148,7 +146,7 @@ export const Transactions = {
     },
 
     async loadCategories(type) {
-        const { data: categories } = await supabase
+        const { data: categories } = await window.supabaseClient
             .from('categories')
             .select('*')
             .eq('family_id', this.app.currentFamily.id)
@@ -174,7 +172,7 @@ export const Transactions = {
             if (type === 'debt') {
                 debtId = document.getElementById('trans-debt').value;
                 
-                let { data: debtCat } = await supabase
+                let { data: debtCat } = await window.supabaseClient
                     .from('categories')
                     .select('id')
                     .eq('family_id', this.app.currentFamily.id)
@@ -182,7 +180,7 @@ export const Transactions = {
                     .single();
                 
                 if (!debtCat) {
-                    const { data: newCat } = await supabase
+                    const { data: newCat } = await window.supabaseClient
                         .from('categories')
                         .insert([{
                             family_id: this.app.currentFamily.id,
@@ -196,13 +194,13 @@ export const Transactions = {
                 
                 categoryId = debtCat.id;
                 
-                await supabase.from('debt_payments').insert([{
+                await window.supabaseClient.from('debt_payments').insert([{
                     debt_id: debtId,
                     amount: amount,
                     payment_date: date
                 }]);
                 
-                const { data: debt } = await supabase
+                const { data: debt } = await window.supabaseClient
                     .from('debts')
                     .select('*, debt_payments(amount)')
                     .eq('id', debtId)
@@ -211,11 +209,11 @@ export const Transactions = {
                 const totalPaid = debt.debt_payments?.reduce((sum, p) => sum + parseFloat(p.amount), 0) || 0;
                 
                 if (totalPaid >= parseFloat(debt.total_amount)) {
-                    await supabase.from('debts').update({ status: 'paid' }).eq('id', debtId);
+                    await window.supabaseClient.from('debts').update({ status: 'paid' }).eq('id', debtId);
                 }
             }
             
-            await supabase.from('transactions').insert([{
+            await window.supabaseClient.from('transactions').insert([{
                 family_id: this.app.currentFamily.id,
                 user_id: this.app.currentUser.id,
                 type,
