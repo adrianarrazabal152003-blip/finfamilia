@@ -1,6 +1,4 @@
-import { supabase } from '../supabase-client.js';
-
-export const Auth = {
+const Auth = {
     render() {
         return `
             <div class="auth-container">
@@ -61,7 +59,7 @@ export const Auth = {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
             
             if (error) alert(error.message);
         });
@@ -71,7 +69,7 @@ export const Auth = {
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             
-            const { error } = await supabase.auth.signUp({ email, password });
+            const { error } = await window.supabaseClient.auth.signUp({ email, password });
             
             if (error) {
                 alert(error.message);
