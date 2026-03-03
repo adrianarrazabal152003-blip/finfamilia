@@ -1,4 +1,4 @@
-export const Sidebar = {
+const Sidebar = {
     render(currentPage) {
         const menuItems = [
             { id: 'dashboard', icon: '📊', label: 'Dashboard' },
