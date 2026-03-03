@@ -1,11 +1,3 @@
-import { supabase } from './supabase-client.js';
-import { Auth } from './components/auth.js';
-import { Dashboard } from './components/dashboard.js';
-import { Transactions } from './components/transactions.js';
-import { Savings } from './components/savings.js';
-import { Debts } from './components/debts.js';
-import { Sidebar } from './components/sidebar.js';
-
 class FinFamiliaApp {
     constructor() {
         this.currentUser = null;
@@ -249,5 +241,10 @@ class FinFamiliaApp {
         await supabase.auth.signOut();
     }
 }
+
+window.app = new FinFamiliaApp();
+    }
+}
+
 
 window.app = new FinFamiliaApp();
