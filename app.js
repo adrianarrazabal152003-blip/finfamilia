@@ -1,3 +1,5 @@
+// Versão 2 - Cache bust
+class FinFamiliaApp {
 class FinFamiliaApp {
     constructor() {
         this.currentUser = null;
@@ -248,3 +250,4 @@ class FinFamiliaApp {
 }
 
 window.app = new FinFamiliaApp();
+
