@@ -42,13 +42,22 @@ class FinFamiliaApp {
         });
     }
 
-    async loadUserFamily() {
-        const { data: member } = await window.supabaseClient
-            .from('family_members')
-            .select('family_id, families(*)')
-            .eq('user_id', this.currentUser.id)
+async loadUserFamily() {
+    const { data: member } = await window.supabaseClient
+        .from('family_members')
+        .select('family_id')
+        .eq('user_id', this.currentUser.id)
+        .single();
+    
+    if (member) {
+        const { data: family } = await window.supabaseClient
+            .from('families')
+            .select('*')
+            .eq('id', member.family_id)
             .single();
-
+        this.currentFamily = family;
+    }
+}
         if (member) {
             this.currentFamily = member.families;
         }
@@ -243,3 +252,4 @@ class FinFamiliaApp {
 }
 
 window.app = new FinFamiliaApp();
+
