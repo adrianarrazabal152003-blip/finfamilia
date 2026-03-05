@@ -237,12 +237,12 @@ const Dashboard = {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     },
 
-    async updateCharts(transactions) {
-        this.updateIncomeExpenseChart(transactions);
-        this.updateCategoryChart(transactions);
-        this.updateDescriptionChart(transactions);
-        await this.updateDebtsChart();
-    },
+async updateCharts(transactions) {
+    this.updateIncomeExpenseChart(transactions);
+    await this.updateCategoryChart(transactions);
+    this.updateDescriptionChart(transactions);
+    await this.updateDebtsChart();
+},
 
     updateIncomeExpenseChart(transactions) {
         const ctx = document.getElementById('chart-income-expense');
@@ -417,3 +417,4 @@ const Dashboard = {
         this.app.updateFilters({ [key]: value });
     }
 };
+
