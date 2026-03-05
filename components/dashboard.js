@@ -119,14 +119,14 @@ const Dashboard = {
     async loadFilters() {
         const { data: members } = await window.supabaseClient
             .from('family_members')
-            .select('user_id, profiles(full_name)')
+            .select('user_id')
             .eq('family_id', this.app.currentFamily.id);
 
         const memberSelect = document.getElementById('filter-member');
         members?.forEach(m => {
             const option = document.createElement('option');
             option.value = m.user_id;
-            option.textContent = m.profiles?.full_name || 'Membro';
+            option.textContent = 'Membro ' + m.user_id.substring(0,8);
             memberSelect.appendChild(option);
         });
 
@@ -182,7 +182,7 @@ const Dashboard = {
         const { start, end } = this.getDateRange();
         let query = window.supabaseClient
             .from('transactions')
-            .select('*, categories(name)')
+            .select('*')
             .eq('family_id', this.app.currentFamily.id)
             .order('date', { ascending: false });
 
@@ -281,7 +281,7 @@ const Dashboard = {
 
         const expenses = transactions.filter(t => t.type === 'expense');
         const byCategory = expenses.reduce((acc, t) => {
-            const cat = t.categories?.name || 'Sem Categoria';
+            const cat = t.category_id || 'Sem Categoria';
             acc[cat] = (acc[cat] || 0) + parseFloat(t.amount);
             return acc;
         }, {});
@@ -355,7 +355,7 @@ const Dashboard = {
 
         const { data: debts } = await window.supabaseClient
             .from('debts')
-            .select('*, debt_payments(amount)')
+            .select('*')
             .eq('family_id', this.app.currentFamily.id)
             .eq('status', 'active')
             .order('total_amount', { ascending: false });
@@ -364,9 +364,7 @@ const Dashboard = {
 
         const labels = debts.map(d => d.description);
         const totalAmounts = debts.map(d => parseFloat(d.total_amount));
-        const paidAmounts = debts.map(d => {
-            return d.debt_payments?.reduce((sum, p) => sum + parseFloat(p.amount), 0) || 0;
-        });
+        const paidAmounts = debts.map(d => 0);
 
         if (this.charts.debts) this.charts.debts.destroy();
 
