@@ -23,6 +23,7 @@ const Transactions = {
             </div>
             
             ${this.renderModal()}
+            ${this.renderDeleteModal()}
         `;
     },
 
@@ -122,8 +123,27 @@ const Transactions = {
         `;
     },
 
+    renderDeleteModal() {
+        return `
+            <div id="delete-trans-modal" class="modal">
+                <div class="modal-content modal-small">
+                    <div class="modal-header">
+                        <h3>⚠️ Confirmar Exclusão</h3>
+                    </div>
+                    <p>Tem certeza que deseja excluir esta transação?</p>
+                    <p id="delete-trans-info" style="font-weight: bold; color: #ef4444;"></p>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="Transactions.closeDeleteModal()">Cancelar</button>
+                        <button type="button" class="btn-danger" onclick="Transactions.confirmDelete()">Excluir</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
     async init(app) {
         this.app = app;
+        this.deleteId = null;
         this.currentFilters = {
             type: 'all',
             category: 'all',
@@ -132,7 +152,6 @@ const Transactions = {
             search: ''
         };
         
-        // Carregar filtros e transações
         await this.loadCategoriesForFilter();
         await this.loadTransactions();
         this.setupForm();
@@ -216,6 +235,9 @@ const Transactions = {
                         ${t.type === 'income' ? '+' : '-'} 
                         ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.amount)}
                     </div>
+                    <button class="btn-icon btn-danger" onclick="Transactions.askDelete('${t.id}', '${t.description}', ${t.amount})" title="Excluir">
+                        🗑️
+                    </button>
                 </div>
             `).join('');
 
@@ -251,6 +273,42 @@ const Transactions = {
         document.getElementById('filter-search').value = '';
         
         this.loadTransactions();
+    },
+
+    askDelete(id, description, amount) {
+        this.deleteId = id;
+        const info = document.getElementById('delete-trans-info');
+        if (info) {
+            info.textContent = `"${description}" - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)}`;
+        }
+        document.getElementById('delete-trans-modal').style.display = 'flex';
+    },
+
+    async confirmDelete() {
+        if (!this.deleteId) return;
+        
+        try {
+            const { error } = await window.supabaseClient
+                .from('transactions')
+                .delete()
+                .eq('id', this.deleteId)
+                .eq('family_id', this.app.currentFamily.id); // Segurança extra
+
+            if (error) throw error;
+            
+            this.closeDeleteModal();
+            this.loadTransactions();
+            alert('Transação excluída com sucesso!');
+            
+        } catch (err) {
+            console.error('Erro ao excluir:', err);
+            alert('Erro ao excluir transação. Tente novamente.');
+        }
+    },
+
+    closeDeleteModal() {
+        document.getElementById('delete-trans-modal').style.display = 'none';
+        this.deleteId = null;
     },
 
     async onTypeChange() {
@@ -304,7 +362,6 @@ const Transactions = {
     },
 
     setupForm() {
-        // Set data atual como padrão
         const dateInput = document.getElementById('trans-date');
         if (dateInput) dateInput.valueAsDate = new Date();
 
@@ -332,7 +389,6 @@ const Transactions = {
                         return;
                     }
                     
-                    // Buscar ou criar categoria "Dívidas"
                     let { data: debtCat } = await window.supabaseClient
                         .from('categories')
                         .select('id')
@@ -355,7 +411,6 @@ const Transactions = {
                     
                     categoryId = debtCat.id;
                     
-                    // Registrar pagamento
                     await window.supabaseClient.from('debt_payments').insert([{
                         debt_id: debtId,
                         amount: amount,
@@ -363,7 +418,6 @@ const Transactions = {
                     }]);
                 }
 
-                // Criar transação
                 const { error } = await window.supabaseClient.from('transactions').insert([{
                     family_id: this.app.currentFamily.id,
                     user_id: this.app.currentUser.id,
@@ -378,7 +432,7 @@ const Transactions = {
                 if (error) throw error;
 
                 this.closeModal();
-                this.loadTransactions(); // Recarregar lista
+                this.loadTransactions();
                 alert('Transação salva com sucesso!');
                 
             } catch (err) {
